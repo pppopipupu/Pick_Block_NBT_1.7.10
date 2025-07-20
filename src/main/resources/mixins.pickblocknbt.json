@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8.3-GTNH",
+  "package": "com.pppopipupu.pickblocknbt.mixins",
+  "refmap": "mixins.pickblocknbt.refmap.json",
+  "target": "@env(DEFAULT)",
+  "client": [
+    "MixinBlock"
+  ],
+  "mixins": [
+    "MixinItemBlock"
+  ],
+  "compatibilityLevel": "JAVA_8"
+}
