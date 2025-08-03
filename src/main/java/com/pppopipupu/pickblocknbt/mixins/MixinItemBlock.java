@@ -17,10 +17,9 @@ public abstract class MixinItemBlock {
 
     @Inject(
         method = "Lnet/minecraft/item/ItemBlock;placeBlockAt(Lnet/minecraft/item/ItemStack;Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/world/World;IIIIFFFI)Z",
-        at = @At(
-            value = "TAIL"
+        at = @At(value = "TAIL"
 
-           ),
+        ),
         remap = false
 
     )
@@ -28,16 +27,12 @@ public abstract class MixinItemBlock {
         float hitX, float hitY, float hitZ, int metadata, CallbackInfoReturnable<Boolean> cir) {
 
         if (!world.isRemote) {
-
             if (stack.hasTagCompound() && stack.getTagCompound()
                 .hasKey("BlockEntityTag", 10)) {
-
                 TileEntity tileEntity = world.getTileEntity(x, y, z);
-
                 if (tileEntity != null) {
                     NBTTagCompound itemNbt = stack.getTagCompound();
                     NBTTagCompound blockEntityTag = itemNbt.getCompoundTag("BlockEntityTag");
-
                     NBTTagCompound nbtToApply = (NBTTagCompound) blockEntityTag.copy();
                     nbtToApply.setInteger("x", x);
                     nbtToApply.setInteger("y", y);

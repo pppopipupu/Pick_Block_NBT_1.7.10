@@ -64,12 +64,11 @@ public class PacketRequestNBT implements IMessage {
             if (block == null || block.isAir(world, x, y, z)) {
                 return null;
             }
-
-            ItemStack resultStack = block.getPickBlock(player.rayTrace(5.0D, 1.0F), world, x, y, z, player);
-            if (resultStack == null) {
+            int meta = block.getDamageValue(world, x, y, z);
+            ItemStack resultStack = new ItemStack(block, 1, meta);
+            if (resultStack.getItem() == null) {
                 return null;
             }
-
             TileEntity tileEntity = world.getTileEntity(x, y, z);
 
             if (tileEntity != null) {
@@ -79,7 +78,7 @@ public class PacketRequestNBT implements IMessage {
                 nbt.removeTag("x");
                 nbt.removeTag("y");
                 nbt.removeTag("z");
-
+                nbt.removeTag("facing");
                 if (!nbt.hasNoTags()) {
                     NBTTagCompound nbttagcompound1 = new NBTTagCompound();
                     NBTTagList nbttaglist = new NBTTagList();
