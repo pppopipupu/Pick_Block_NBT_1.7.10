@@ -8,6 +8,7 @@ import net.minecraft.world.World;
 
 import org.lwjgl.input.Keyboard;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -29,9 +30,16 @@ public abstract class MixinBlock {
         CallbackInfoReturnable<ItemStack> cir) {
         boolean isCtrlKeyDown = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
         if (isCtrlKeyDown && player.capabilities.isCreativeMode) {
-            CommonProxy.network.sendToServer(new PacketRequestNBT(x, y, z));
+            CommonProxy.network.sendToServer(new PacketRequestNBT(getPickBlock(target, world, x, y, z), x, y, z));
             cir.setReturnValue(null);
 
         }
     }
+
+    @Deprecated
+    @Shadow
+    public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z) {
+        return null;
+    }
+
 }

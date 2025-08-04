@@ -26,22 +26,21 @@ public abstract class MixinItemBlock {
     private void PlaceBlockAt(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ, int metadata, CallbackInfoReturnable<Boolean> cir) {
 
-        if (!world.isRemote) {
-            if (stack.hasTagCompound() && stack.getTagCompound()
-                .hasKey("BlockEntityTag", 10)) {
-                TileEntity tileEntity = world.getTileEntity(x, y, z);
-                if (tileEntity != null) {
-                    NBTTagCompound itemNbt = stack.getTagCompound();
-                    NBTTagCompound blockEntityTag = itemNbt.getCompoundTag("BlockEntityTag");
-                    NBTTagCompound nbtToApply = (NBTTagCompound) blockEntityTag.copy();
-                    nbtToApply.setInteger("x", x);
-                    nbtToApply.setInteger("y", y);
-                    nbtToApply.setInteger("z", z);
-                    tileEntity.readFromNBT(nbtToApply);
-                    tileEntity.markDirty();
-                    world.markBlockForUpdate(x, y, z);
-                }
+        if (stack.hasTagCompound() && stack.getTagCompound()
+            .hasKey("BlockEntityTag", 10)) {
+            TileEntity tileEntity = world.getTileEntity(x, y, z);
+            if (tileEntity != null) {
+                NBTTagCompound itemNbt = stack.getTagCompound();
+                NBTTagCompound blockEntityTag = itemNbt.getCompoundTag("BlockEntityTag");
+                NBTTagCompound nbtToApply = (NBTTagCompound) blockEntityTag.copy();
+                nbtToApply.setInteger("x", x);
+                nbtToApply.setInteger("y", y);
+                nbtToApply.setInteger("z", z);
+                tileEntity.readFromNBT(nbtToApply);
+                tileEntity.markDirty();
+                world.markBlockForUpdate(x, y, z);
             }
         }
+
     }
 }

@@ -1,13 +1,17 @@
 package com.pppopipupu.pickblocknbt.network;
 
-import net.minecraft.block.Block;
+import java.io.IOException;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+
+import com.pppopipupu.pickblocknbt.PickBlockNBT;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -17,17 +21,27 @@ import io.netty.buffer.ByteBuf;
 public class PacketRequestNBT implements IMessage {
 
     private int x, y, z;
+    public ItemStack stack;
 
     public PacketRequestNBT() {}
 
-    public PacketRequestNBT(int x, int y, int z) {
+    public PacketRequestNBT(ItemStack stack, int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.stack = stack;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
+        PacketBuffer packetBuffer = new PacketBuffer(buf);
+        try {
+            this.stack = packetBuffer.readItemStackFromBuffer();
+        } catch (IOException e) {
+            PickBlockNBT.LOG.error("Failed to read ItemStack from PacketBuffer", e);
+            this.stack = null;
+        }
+
         this.x = buf.readInt();
         this.y = buf.readInt();
         this.z = buf.readInt();
@@ -35,6 +49,13 @@ public class PacketRequestNBT implements IMessage {
 
     @Override
     public void toBytes(ByteBuf buf) {
+        PacketBuffer packetBuffer = new PacketBuffer(buf);
+        try {
+            packetBuffer.writeItemStackToBuffer(this.stack);
+        } catch (IOException e) {
+            PickBlockNBT.LOG.error("Failed to write ItemStack from PacketBuffer", e);
+            this.stack = null;
+        }
         buf.writeInt(this.x);
         buf.writeInt(this.y);
         buf.writeInt(this.z);
@@ -51,6 +72,7 @@ public class PacketRequestNBT implements IMessage {
             int x = message.x;
             int y = message.y;
             int z = message.z;
+            ItemStack stack = message.stack;
 
             if (player.getDistanceSq(x, y, z) > 64.0D) {
                 return null;
@@ -59,16 +81,10 @@ public class PacketRequestNBT implements IMessage {
             if (!player.capabilities.isCreativeMode) {
                 return null;
             }
+            if (stack == null) {
+                return null;
+            }
 
-            Block block = world.getBlock(x, y, z);
-            if (block == null || block.isAir(world, x, y, z)) {
-                return null;
-            }
-            int meta = block.getDamageValue(world, x, y, z);
-            ItemStack resultStack = new ItemStack(block, 1, meta);
-            if (resultStack.getItem() == null) {
-                return null;
-            }
             TileEntity tileEntity = world.getTileEntity(x, y, z);
 
             if (tileEntity != null) {
@@ -84,12 +100,12 @@ public class PacketRequestNBT implements IMessage {
                     NBTTagList nbttaglist = new NBTTagList();
                     nbttaglist.appendTag(new NBTTagString("(+NBT)"));
                     nbttagcompound1.setTag("Lore", nbttaglist);
-                    resultStack.setTagInfo("display", nbttagcompound1);
-                    resultStack.setTagInfo("BlockEntityTag", nbt);
+                    stack.setTagInfo("display", nbttagcompound1);
+                    stack.setTagInfo("BlockEntityTag", nbt);
                 }
             }
 
-            player.inventory.mainInventory[player.inventory.currentItem] = resultStack;
+            player.inventory.mainInventory[player.inventory.currentItem] = stack;
 
             player.updateHeldItem();
 
